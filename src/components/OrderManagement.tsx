@@ -11,15 +11,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, AlertTriangle, Clock, MapPin, Upload } from 'lucide-react';
 
+interface Order {
+  id: string;
+  customer: string;
+  phone: string;
+  assignedItems: Record<string, number>;
+  deliveredItems: Record<string, number> | null;
+  status: string;
+  slaRemaining: number;
+  location: string;
+}
+
 const OrderManagement = () => {
   const { toast } = useToast();
-  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [deliveryQuantities, setDeliveryQuantities] = useState<{[key: string]: number}>({});
   const [otp, setOtp] = useState('');
   const [verificationStep, setVerificationStep] = useState<'assignment' | 'delivery' | 'completed'>('assignment');
 
   // Mock orders data
-  const orders = [
+  const orders: Order[] = [
     {
       id: 'FHG345',
       customer: 'Janet Ibrahim',
@@ -73,7 +84,7 @@ const OrderManagement = () => {
     }
   };
 
-  const handleAssignmentVerification = (order: any, confirmed: boolean) => {
+  const handleAssignmentVerification = (order: Order, confirmed: boolean) => {
     if (confirmed) {
       toast({
         title: "Assignment Verified",
@@ -187,107 +198,109 @@ const OrderManagement = () => {
                           <DialogHeader>
                             <DialogTitle>Order #{order.id} - Dual Verification</DialogTitle>
                           </DialogHeader>
-                          <div className="space-y-6">
-                            {/* Customer Info */}
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                              <h3 className="font-semibold mb-2">Customer Details</h3>
-                              <p><strong>Name:</strong> {order.customer}</p>
-                              <p><strong>Phone:</strong> {order.phone}</p>
-                              <p className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{order.location}</p>
-                            </div>
-
-                            {/* Step 1: Assignment Verification */}
-                            {verificationStep === 'assignment' && (
-                              <div className="space-y-4">
-                                <h3 className="font-semibold text-lg">Step 1: Verify Assignment</h3>
-                                <div className="bg-blue-50 p-4 rounded-lg">
-                                  <h4 className="font-medium mb-2">Assigned Items:</h4>
-                                  {Object.entries(order.assignedItems).map(([item, qty]) => (
-                                    <p key={item}>{item}: {qty} units</p>
-                                  ))}
-                                </div>
-                                <div className="flex space-x-4">
-                                  <Button 
-                                    onClick={() => handleAssignmentVerification(order, true)}
-                                    className="bg-green-600 hover:bg-green-700"
-                                  >
-                                    ✅ Confirm Assignment
-                                  </Button>
-                                  <Button 
-                                    variant="outline"
-                                    onClick={() => handleAssignmentVerification(order, false)}
-                                  >
-                                    ❌ Flag Assignment
-                                  </Button>
-                                </div>
+                          {selectedOrder && (
+                            <div className="space-y-6">
+                              {/* Customer Info */}
+                              <div className="bg-gray-50 p-4 rounded-lg">
+                                <h3 className="font-semibold mb-2">Customer Details</h3>
+                                <p><strong>Name:</strong> {selectedOrder.customer}</p>
+                                <p><strong>Phone:</strong> {selectedOrder.phone}</p>
+                                <p className="flex items-center"><MapPin className="h-4 w-4 mr-1" />{selectedOrder.location}</p>
                               </div>
-                            )}
 
-                            {/* Step 2: Delivery Confirmation */}
-                            {verificationStep === 'delivery' && (
-                              <div className="space-y-4">
-                                <h3 className="font-semibold text-lg">Step 2: Confirm Delivery</h3>
+                              {/* Step 1: Assignment Verification */}
+                              {verificationStep === 'assignment' && (
                                 <div className="space-y-4">
-                                  <div>
-                                    <Label>Enter Delivered Quantities:</Label>
-                                    {Object.entries(order.assignedItems).map(([item, assignedQty]) => (
-                                      <div key={item} className="flex items-center space-x-2 mt-2">
-                                        <span className="w-24">{item}:</span>
-                                        <Input
-                                          type="number"
-                                          max={assignedQty}
-                                          min="0"
-                                          placeholder="0"
-                                          className="w-20"
-                                          onChange={(e) => setDeliveryQuantities({
-                                            ...deliveryQuantities,
-                                            [item]: parseInt(e.target.value) || 0
-                                          })}
-                                        />
-                                        <span className="text-sm text-gray-500">/ {assignedQty}</span>
-                                      </div>
+                                  <h3 className="font-semibold text-lg">Step 1: Verify Assignment</h3>
+                                  <div className="bg-blue-50 p-4 rounded-lg">
+                                    <h4 className="font-medium mb-2">Assigned Items:</h4>
+                                    {Object.entries(selectedOrder.assignedItems).map(([item, qty]) => (
+                                      <p key={item}>{item}: {qty} units</p>
                                     ))}
                                   </div>
-                                  
-                                  <div>
-                                    <Label htmlFor="otp">4-Digit OTP from Customer:</Label>
-                                    <Input
-                                      id="otp"
-                                      maxLength={4}
-                                      placeholder="0000"
-                                      value={otp}
-                                      onChange={(e) => setOtp(e.target.value)}
-                                      className="w-32"
-                                    />
-                                  </div>
-
-                                  <div>
-                                    <Label>Upload Payment Proof:</Label>
-                                    <Button variant="outline" className="mt-2">
-                                      <Upload className="h-4 w-4 mr-2" />
-                                      Choose File
+                                  <div className="flex space-x-4">
+                                    <Button 
+                                      onClick={() => handleAssignmentVerification(selectedOrder, true)}
+                                      className="bg-green-600 hover:bg-green-700"
+                                    >
+                                      ✅ Confirm Assignment
+                                    </Button>
+                                    <Button 
+                                      variant="outline"
+                                      onClick={() => handleAssignmentVerification(selectedOrder, false)}
+                                    >
+                                      ❌ Flag Assignment
                                     </Button>
                                   </div>
-
-                                  <Button 
-                                    onClick={handleDeliverySubmission}
-                                    className="bg-green-600 hover:bg-green-700 w-full"
-                                  >
-                                    Complete Delivery
-                                  </Button>
                                 </div>
-                              </div>
-                            )}
+                              )}
 
-                            {/* Step 3: Completed */}
-                            {verificationStep === 'completed' && (
-                              <div className="text-center space-y-4">
-                                <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
-                                <h3 className="text-xl font-semibold text-green-600">Delivery Completed!</h3>
-                                <p>Order #{order.id} has been successfully processed.</p>
-                              </div>
-                            )}
-                          </div>
+                              {/* Step 2: Delivery Confirmation */}
+                              {verificationStep === 'delivery' && (
+                                <div className="space-y-4">
+                                  <h3 className="font-semibold text-lg">Step 2: Confirm Delivery</h3>
+                                  <div className="space-y-4">
+                                    <div>
+                                      <Label>Enter Delivered Quantities:</Label>
+                                      {Object.entries(selectedOrder.assignedItems).map(([item, assignedQty]) => (
+                                        <div key={item} className="flex items-center space-x-2 mt-2">
+                                          <span className="w-24">{item}:</span>
+                                          <Input
+                                            type="number"
+                                            max={assignedQty}
+                                            min="0"
+                                            placeholder="0"
+                                            className="w-20"
+                                            onChange={(e) => setDeliveryQuantities({
+                                              ...deliveryQuantities,
+                                              [item]: parseInt(e.target.value) || 0
+                                            })}
+                                          />
+                                          <span className="text-sm text-gray-500">/ {assignedQty}</span>
+                                        </div>
+                                      ))}
+                                    </div>
+                                    
+                                    <div>
+                                      <Label htmlFor="otp">4-Digit OTP from Customer:</Label>
+                                      <Input
+                                        id="otp"
+                                        maxLength={4}
+                                        placeholder="0000"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        className="w-32"
+                                      />
+                                    </div>
+
+                                    <div>
+                                      <Label>Upload Payment Proof:</Label>
+                                      <Button variant="outline" className="mt-2">
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        Choose File
+                                      </Button>
+                                    </div>
+
+                                    <Button 
+                                      onClick={handleDeliverySubmission}
+                                      className="bg-green-600 hover:bg-green-700 w-full"
+                                    >
+                                      Complete Delivery
+                                    </Button>
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Step 3: Completed */}
+                              {verificationStep === 'completed' && (
+                                <div className="text-center space-y-4">
+                                  <CheckCircle className="h-16 w-16 text-green-600 mx-auto" />
+                                  <h3 className="text-xl font-semibold text-green-600">Delivery Completed!</h3>
+                                  <p>Order #{selectedOrder.id} has been successfully processed.</p>
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </DialogContent>
                       </Dialog>
                     </td>
