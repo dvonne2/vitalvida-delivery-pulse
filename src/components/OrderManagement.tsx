@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,12 +8,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, AlertTriangle, Clock, MapPin, Upload } from 'lucide-react';
+import { CheckCircle, AlertTriangle, Clock, MapPin, Upload, Eye } from 'lucide-react';
+import DAActionPanel from './DAActionPanel';
 
 interface Order {
   id: string;
   customer: string;
   phone: string;
+  address: string;
+  email: string;
+  product: string;
+  quantity: number;
+  discount: string;
+  source: string;
   assignedItems: Record<string, number>;
   deliveredItems: Record<string, number> | null;
   status: string;
@@ -28,23 +34,36 @@ const OrderManagement = () => {
   const [deliveryQuantities, setDeliveryQuantities] = useState<{[key: string]: number}>({});
   const [otp, setOtp] = useState('');
   const [verificationStep, setVerificationStep] = useState<'assignment' | 'delivery' | 'completed'>('assignment');
+  const [daActionOpen, setDaActionOpen] = useState(false);
 
-  // Mock orders data
+  // Enhanced mock orders data with full details for DA Action Panel
   const orders: Order[] = [
     {
       id: 'FHG345',
       customer: 'Janet Ibrahim',
       phone: '08012345678',
+      address: 'Kuramo Beach Residence (KBR), 1415A Adetokunbo Ademola Street, VI, Lagos',
+      email: 'janet.ibrahim@gmail.com',
+      product: 'PB4D FulaniHairGro',
+      quantity: 1,
+      discount: '₦32,750',
+      source: 'Referral',
       assignedItems: { 'Shampoo': 3, 'Pomade': 3 },
       deliveredItems: { 'Shampoo': 3, 'Pomade': 2 },
       status: 'mismatch',
-      slaRemaining: 720, // seconds
+      slaRemaining: 720,
       location: 'Victoria Island, Lagos'
     },
     {
       id: 'ABC123',
       customer: 'Uche Okoro',
       phone: '08098765432',
+      address: 'Plot 15, Adeniyi Jones Avenue, Ikeja, Lagos',
+      email: 'uche.okoro@email.com',
+      product: 'Hair Care Bundle',
+      quantity: 2,
+      discount: '₦25,000',
+      source: 'Social Media',
       assignedItems: { 'Conditioner': 2, 'Shampoo': 1 },
       deliveredItems: null,
       status: 'pending_verification',
@@ -55,6 +74,12 @@ const OrderManagement = () => {
       id: 'XYZ789',
       customer: 'Amina Hassan',
       phone: '08055667788',
+      address: '23 Bode Thomas Street, Surulere, Lagos',
+      email: 'amina.hassan@yahoo.com',
+      product: 'Premium Hair Set',
+      quantity: 1,
+      discount: '₦15,500',
+      source: 'Walk-in',
       assignedItems: { 'Pomade': 4, 'Conditioner': 1 },
       deliveredItems: null,
       status: 'new',
@@ -82,6 +107,11 @@ const OrderManagement = () => {
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
+  };
+
+  const handleEyeClick = (order: Order) => {
+    setSelectedOrder(order);
+    setDaActionOpen(true);
   };
 
   const handleAssignmentVerification = (order: Order, confirmed: boolean) => {
@@ -119,6 +149,119 @@ const OrderManagement = () => {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <Clock className="h-5 w-5" />
+            <span>🚨 PRESSURE DEY - My Orders Today (DA View Only)</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left p-3">Order ID</th>
+                  <th className="text-left p-3">Customer</th>
+                  <th className="text-left p-3">Assigned Qty</th>
+                  <th className="text-left p-3">Acknowledge</th>
+                  <th className="text-left p-3">Out for Delivery</th>
+                  <th className="text-left p-3">Payment</th>
+                  <th className="text-left p-3">OTP Delivered</th>
+                  <th className="text-left p-3">Bonus Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((order) => (
+                  <tr key={order.id} className="border-b hover:bg-gray-50">
+                    <td className="p-3 font-medium">
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEyeClick(order)}
+                          className="p-1 h-auto"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <span>#{order.id}</span>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div>
+                        <p className="font-medium">{order.customer}</p>
+                        <p className="text-sm text-gray-500">{order.phone}</p>
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {Object.entries(order.assignedItems).map(([item, qty]) => (
+                          <div key={item}>
+                            {item} x{qty}
+                          </div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {order.status !== 'new' ? (
+                          <span className="text-green-600">✅ @ 09:36</span>
+                        ) : (
+                          <span className="text-gray-400">❌ Not Yet</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {order.status !== 'new' ? (
+                          <span className="text-blue-600">🚚 @ 10:11</span>
+                        ) : (
+                          <span className="text-gray-400">❌ Not Yet</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {order.status !== 'new' ? (
+                          <span className="text-green-600">💳 Paid @ 10:21</span>
+                        ) : (
+                          <span className="text-red-600">❌ Not Paid</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {order.status !== 'new' && order.status !== 'pending_verification' ? (
+                          <span className="text-yellow-600">🔐 OTP @ 12:18</span>
+                        ) : (
+                          <span className="text-red-600">❌ Not Delivered</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="p-3">
+                      <div className="text-sm">
+                        {order.status !== 'new' ? (
+                          <span className="text-green-600">✅ ₦200 bonus (10H met)</span>
+                        ) : (
+                          <span className="text-red-600">🚨 No Bonus — Hurry Up!</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          
+          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+            <p className="text-center text-blue-800 font-medium">
+              "Complete delivery under 10H to earn ₦200/order"
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Legacy Dual Verification System */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
@@ -311,6 +454,18 @@ const OrderManagement = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* DA Action Panel */}
+      {selectedOrder && (
+        <DAActionPanel
+          order={selectedOrder}
+          isOpen={daActionOpen}
+          onClose={() => {
+            setDaActionOpen(false);
+            setSelectedOrder(null);
+          }}
+        />
+      )}
     </div>
   );
 };
