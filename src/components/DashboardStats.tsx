@@ -22,37 +22,6 @@ interface DashboardStatsProps {
 }
 
 const DashboardStats = ({ agentData }: DashboardStatsProps) => {
-  const statsCards = [
-    {
-      title: "Orders Assigned Today",
-      value: "15",
-      icon: Package,
-      color: "text-blue-600",
-      bgColor: "bg-blue-50"
-    },
-    {
-      title: "Deliveries Completed",
-      value: agentData.completedToday.toString(),
-      icon: CheckCircle,
-      color: "text-green-600",
-      bgColor: "bg-green-50"
-    },
-    {
-      title: "Failed Deliveries",
-      value: "2",
-      icon: AlertTriangle,
-      color: "text-yellow-600",
-      bgColor: "bg-yellow-50"
-    },
-    {
-      title: "Outstanding Payments",
-      value: "₦8,500",
-      icon: Clock,
-      color: "text-purple-600",
-      bgColor: "bg-purple-50"
-    }
-  ];
-
   const timeUntilPhotoDeadline = () => {
     const now = new Date();
     const friday1PM = new Date();
@@ -66,27 +35,43 @@ const DashboardStats = ({ agentData }: DashboardStatsProps) => {
     return `${hours}h ${minutes}m`;
   };
 
-  // Daily stats data
+  // Daily stats data with colors and icons
   const dailyStats = [
     {
       title: "Orders Assigned Today",
       value: "15",
-      description: "Total number of orders assigned today"
+      description: "Total number of orders assigned today",
+      icon: Package,
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
+      valueColor: "text-blue-700"
     },
     {
       title: "Deliveries Completed",
       value: "12",
-      description: "Successfully completed deliveries today"
+      description: "Successfully completed deliveries today",
+      icon: CheckCircle,
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
+      valueColor: "text-green-700"
     },
     {
       title: "Failed Deliveries",
       value: "2",
-      description: "Orders that failed or weren't delivered"
+      description: "Orders that failed or weren't delivered",
+      icon: AlertTriangle,
+      bgColor: "bg-yellow-50",
+      iconColor: "text-yellow-600",
+      valueColor: "text-yellow-700"
     },
     {
       title: "Outstanding Payments",
       value: "₦8,500",
-      description: "Delivery fees not yt paid to the DA"
+      description: "Delivery fees not yet paid to the DA",
+      icon: Clock,
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
+      valueColor: "text-purple-700"
     }
   ];
 
@@ -166,68 +151,62 @@ const DashboardStats = ({ agentData }: DashboardStatsProps) => {
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Main Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statsCards.map((stat, index) => (
-          <Card key={index} className="hover:shadow-lg transition-shadow duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
-                  <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
-                </div>
-                <div className={`p-3 rounded-full ${stat.bgColor}`}>
-                  <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Daily Stats Section */}
+    <div className="space-y-8">
+      {/* Daily Stats Section - 4 in a row with colors */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-center text-2xl text-gray-500">Daily</CardTitle>
+          <CardTitle className="text-center text-2xl text-gray-700 font-bold">Daily</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {dailyStats.map((stat, index) => (
-              <div key={index} className="border border-gray-200 rounded-lg p-6">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{stat.title}</h3>
-                <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
-                <p className="text-sm text-gray-500">{stat.description}</p>
+              <div key={index} className={`${stat.bgColor} border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow duration-200`}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className={`p-3 rounded-full bg-white shadow-sm`}>
+                    <stat.icon className={`h-6 w-6 ${stat.iconColor}`} />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{stat.title}</h3>
+                <p className={`text-3xl font-bold ${stat.valueColor} mb-3`}>{stat.value}</p>
+                <p className="text-sm text-gray-600">{stat.description}</p>
               </div>
             ))}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Weekly Section */}
-          <div className="mt-8">
-            <h2 className="text-center text-2xl text-gray-500 mb-6">Weekly</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {weeklyStats.map((stat, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{stat.title}</h3>
-                  <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.description}</p>
-                </div>
-              ))}
-            </div>
+      {/* Weekly Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center text-2xl text-gray-700 font-bold">Weekly</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {weeklyStats.map((stat, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-6 bg-gray-50 hover:bg-gray-100 transition-colors duration-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{stat.title}</h3>
+                <p className="text-3xl font-bold text-gray-700 mb-3">{stat.value}</p>
+                <p className="text-sm text-gray-600">{stat.description}</p>
+              </div>
+            ))}
           </div>
+        </CardContent>
+      </Card>
 
-          {/* Monthly Section */}
-          <div className="mt-8">
-            <h2 className="text-center text-2xl text-gray-500 mb-6">Monthly</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {monthlyStats.map((stat, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-6">
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{stat.title}</h3>
-                  <p className="text-3xl font-bold text-gray-900 mb-2">{stat.value}</p>
-                  <p className="text-sm text-gray-500">{stat.description}</p>
-                </div>
-              ))}
-            </div>
+      {/* Monthly Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-center text-2xl text-gray-700 font-bold">Monthly</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {monthlyStats.map((stat, index) => (
+              <div key={index} className="border border-gray-200 rounded-lg p-6 bg-indigo-50 hover:bg-indigo-100 transition-colors duration-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{stat.title}</h3>
+                <p className="text-3xl font-bold text-indigo-700 mb-3">{stat.value}</p>
+                <p className="text-sm text-gray-600">{stat.description}</p>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
